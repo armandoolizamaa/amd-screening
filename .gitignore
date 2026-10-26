@@ -1,0 +1,14 @@
+# NEVER commit: poster extraction contains HYAMD images (PhysioNet DUA)
+.poster/
+data/
+*.onnx
+*.pt
+*.pth
+mlruns/
+mlflow.db
+.env
+.env.*
+!.env.example
+.venv/
+node_modules/
+.next/
