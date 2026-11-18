@@ -1,6 +1,6 @@
 # NEVER commit: poster extraction contains HYAMD images (PhysioNet DUA)
 .poster/
-data/
+/data/
 *.onnx
 *.pt
 *.pth
