@@ -6,7 +6,7 @@ type Ort = typeof import("onnxruntime-web");
 type Session = import("onnxruntime-web").InferenceSession;
 
 export type Prediction = {
-  probability: number; // calibrated P(AMD)
+  probability: number; // model score: Platt-calibrated on the validation mix, NOT a population risk
   flagged: boolean; // probability >= threshold
   cam: Float32Array; // 7x7 raw class-activation map (AMD-vs-normal evidence)
   camSize: number;
@@ -69,10 +69,9 @@ export async function predict(tensor: Float32Array): Promise<Prediction> {
   const size = manifest.input.size;
   const out = await session.run({ image: new ort.Tensor("float32", tensor, [1, 3, size, size]) });
   const logits = out.logits.data as Float32Array;
-  const T = manifest.temperature;
-  const a = logits[0] / T;
-  const b = logits[1] / T;
-  const probability = 1 / (1 + Math.exp(a - b)); // softmax over 2 classes
+  const cal = (manifest as { calibration?: { a: number; b: number } }).calibration ?? { a: 1, b: 0 };
+  const margin = logits[1] - logits[0]; // AMD logit minus normal logit
+  const probability = 1 / (1 + Math.exp(-(cal.a * margin + cal.b))); // Platt scaling fitted on validation
   return {
     probability,
     flagged: probability >= THRESHOLD,

@@ -9,3 +9,4 @@ imagehash
 scikit-learn
 pandas
 pillow
+matplotlib

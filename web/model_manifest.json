@@ -1,8 +1,8 @@
 {
-  "version": "v0.1-resnet18",
+  "version": "v0.2-resnet18",
   "file": "model.onnx",
-  "url": "https://github.com/armandoolizamaa/amd-screening/releases/download/v0.1-resnet18/model.onnx",
-  "sha256": "384421b750c110021670f430344b3d475141942bafb164d05793b2d83fc1ff58",
+  "url": "https://github.com/armandoolizamaa/amd-screening/releases/download/v0.2-resnet18/model.onnx",
+  "sha256": "b90aae3584468d23f00b5e1b7f67bb0fa2180fd00300ab4742f7781b9361951d",
   "bytes": 44702785,
   "input": {
     "size": 224,
@@ -32,9 +32,13 @@
     "normal",
     "amd"
   ],
-  "temperature": 1.0,
-  "threshold": 0.24,
+  "threshold": 0.11,
   "preprocess": {
     "clahe": null
-  }
+  },
+  "calibration": {
+    "a": 0.6740711619092582,
+    "b": -2.27745164060592
+  },
+  "notes": "ResNet-18 trained on ODIR-5K + AMDNet23 (patient/duplicate-grouped); Platt calibration and threshold fitted on validation; external test = RFMiD"
 }

@@ -15,7 +15,7 @@ const STEPS = [
   {
     n: "03",
     title: "See where it looked",
-    body: "You get a calibrated probability plus a heatmap of the regions that pushed the model toward AMD.",
+    body: "You get a model score (not a diagnosis or a personal risk) plus a heatmap of the regions that pushed the model toward AMD.",
   },
 ];
 

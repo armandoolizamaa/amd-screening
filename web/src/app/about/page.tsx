@@ -11,7 +11,7 @@ export default function AboutPage() {
         This project started as a poster for EAI 6080 at the Roux Institute, Northeastern University: a ResNet-18
         classifier for age-related macular degeneration (AMD) in fundus photographs, with Grad-CAM heatmaps. This site
         rebuilds it as an in-browser demo with a stricter evaluation: patient-grouped splits, external testing, and
-        calibrated scores.
+        scores calibrated on held-out validation data.
       </p>
 
       <h2 className="mt-10 text-2xl font-medium">Credits</h2>

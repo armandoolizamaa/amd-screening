@@ -103,23 +103,40 @@ def main() -> None:
         if any(feat(imgs, i) @ feat(imgs, j) / 4096 >= CORR for j in od[d <= XHAM]):
             drop[i] = True; n += 1
     report["amdnet23_dropped_as_odir_duplicates"] = n
-    # 3) within-source clusters -> shared group id (union-find), so near-dups never straddle splits
+    # 3) group images: union (a) verified near-duplicates and (b) images of the same ODIR patient,
+    #    in ONE union-find so a patient and a duplicate cluster can never be split apart.
     parent = list(range(len(meta)))
-    find = lambda x: x if parent[x] == x else find(parent[x])  # noqa: E731
+
+    def find(x: int) -> int:  # iterative, with path compression
+        r = x
+        while parent[r] != r:
+            r = parent[r]
+        while parent[x] != r:
+            parent[x], x = r, parent[x]
+        return r
+
+    def union(a: int, b: int) -> None:
+        parent[find(a)] = find(b)
+
     pool_idx = np.where((meta.source != "rfmid") & ~drop)[0]
+    dup_pairs = []
     for k, i in enumerate(pool_idx):
         d = ham(H[pool_idx[k + 1 :]], int(H[i])) if k + 1 < len(pool_idx) else np.array([])
         for j in pool_idx[k + 1 :][d <= IHAM]:
             if feat(imgs, i) @ feat(imgs, j) / 4096 >= CORR:
-                parent[find(j)] = find(i)
-    meta["cluster"] = [f"c{find(i)}" for i in range(len(meta))]
-    # final group = ODIR patient id merged with hash clusters (conservative: use cluster-of-patients)
-    g = meta["group"].fillna(meta["cluster"])
-    gp = {}
-    for i in pool_idx:  # merge cluster into patient group where both exist
-        gp.setdefault(meta.at[i, "cluster"], g[i])
-    ps = set(pool_idx.tolist())
-    meta["group"] = [gp.get(meta.at[i, "cluster"], g[i]) if i in ps else g[i] for i in range(len(meta))]
+                union(i, j); dup_pairs.append((int(i), int(j)))
+    first_of: dict = {}
+    for i in pool_idx:
+        pid = meta.at[i, "group"]
+        if isinstance(pid, str):
+            if pid in first_of:
+                union(i, first_of[pid])
+            else:
+                first_of[pid] = i
+    meta["patient"] = meta["group"]
+    meta["group"] = [f"g{find(i)}" for i in range(len(meta))]
+    meta.loc[meta.source == "rfmid", "group"] = meta.loc[meta.source == "rfmid", "path"].map(
+        lambda p: "rfmid_" + p.split("/1. Original Images/")[1].split("/")[0][:1] + "_" + Path(p).stem)
     meta["dropped_leak"] = drop
     # 4) split pool: group-stratified 70/15/15
     pool_df = meta.loc[pool_idx]
@@ -129,9 +146,12 @@ def main() -> None:
     meta.loc[drop, "split"] = "dropped"
     for f, (_, te) in enumerate(sgk.split(pool_df, pool_df.label, pool_df.group)):
         meta.loc[pool_df.index[te], "split"] = "test" if f < 3 else ("val" if f < 6 else "train")
-    # sanity: no group in two splits
-    chk = meta[meta.split.isin(["train", "val", "test"])].groupby("group").split.nunique()
-    report["groups_spanning_splits"] = int((chk > 1).sum())
+    # independent sanity checks (not derived from the final group column)
+    pool = meta[meta.split.isin(["train", "val", "test"])]
+    report["odir_patients_spanning_splits"] = int((pool[pool.source == "odir"].groupby("patient").split.nunique() > 1).sum())
+    report["verified_duplicate_pairs"] = len(dup_pairs)
+    report["duplicate_pairs_spanning_splits"] = int(sum(meta.at[i, "split"] != meta.at[j, "split"] for i, j in dup_pairs))
+    report["groups_spanning_splits"] = int((pool.groupby("group").split.nunique() > 1).sum())
     report["counts"] = {f"{s}/{sp}/{l}": int(n) for (s, sp, l), n in meta.groupby(["source", "split", "label"]).size().items()}
     np.save(OUT / "imgs.npy", imgs)
     meta.drop(columns=["path"]).to_csv(OUT / "meta.csv", index=False)
