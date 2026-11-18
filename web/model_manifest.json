@@ -1,0 +1,40 @@
+{
+  "version": "v0.1-resnet18",
+  "file": "model.onnx",
+  "url": null,
+  "sha256": "384421b750c110021670f430344b3d475141942bafb164d05793b2d83fc1ff58",
+  "bytes": 44702785,
+  "input": {
+    "size": 224,
+    "mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "std": [
+      0.229,
+      0.224,
+      0.225
+    ]
+  },
+  "outputs": {
+    "logits": [
+      1,
+      2
+    ],
+    "cam": [
+      1,
+      7,
+      7
+    ]
+  },
+  "classes": [
+    "normal",
+    "amd"
+  ],
+  "temperature": 1.0,
+  "threshold": 0.24,
+  "preprocess": {
+    "clahe": null
+  }
+}

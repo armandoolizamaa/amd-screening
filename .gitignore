@@ -12,3 +12,10 @@ mlflow.db
 .venv/
 node_modules/
 .next/
+# generated at build time (ORT runtime + model fetched from GitHub Release)
+web/public/ort/
+web/public/model/
+training/out/
+
+.DS_Store
+__pycache__/
