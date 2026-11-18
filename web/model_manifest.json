@@ -1,7 +1,7 @@
 {
   "version": "v0.2-resnet18",
   "file": "model.onnx",
-  "url": "https://github.com/armandoolizamaa/amd-screening/releases/download/v0.2-resnet18/model.onnx",
+  "url": "https://github.com/armandoolizamaa/amd-screening/releases/download/v0.2-resnet18/model_v0.2.onnx",
   "sha256": "b90aae3584468d23f00b5e1b7f67bb0fa2180fd00300ab4742f7781b9361951d",
   "bytes": 44702785,
   "input": {
